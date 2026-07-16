@@ -126,11 +126,16 @@ def simplify_and_rebake(obj_name=None, mat_name=None, base_name=None,
             n.uv_map = old_uv
 
     # --- create the clean UV map (Smart UV Project) --------------------------
+    # Keep the OLD uv as the render-active layer for now: image texture nodes
+    # with no explicit Vector/UV-Map input (as in this material) sample using
+    # whichever UV layer is render-active, not the one that's merely "active".
+    # If we flip that to the new (still blank) UV before baking, the source
+    # bake reads garbled/mislocated texture data instead of the original.
+    me.uv_layers[old_uv].active_render = True
     if new_uv_name in me.uv_layers:
         me.uv_layers.remove(me.uv_layers[new_uv_name])
     new_uv = me.uv_layers.new(name=new_uv_name)
-    me.uv_layers.active = new_uv
-    new_uv.active_render = True  # bake destination layout
+    me.uv_layers.active = new_uv  # bake destination layout
 
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
