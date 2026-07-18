@@ -117,7 +117,11 @@ def simplify_and_rebake(obj_name=None, mat_name=None, base_name=None,
         raise ValueError("Mesh has no UV layers to bake from")
     old_uv = (me.uv_layers.active or me.uv_layers[0]).name
     if old_uv == new_uv_name:
-        old_uv = me.uv_layers[0].name  # avoid clobbering the source
+        # Renaming (not just picking a different existing layer) is required:
+        # when this is the *only* UV layer, there is no other layer to fall
+        # back to, so the source data must be moved out of the way instead.
+        me.uv_layers[old_uv].name = f"{old_uv}_src"
+        old_uv = f"{old_uv}_src"
 
     # Pin every UV Map node in the material to the source UV so the bake reads
     # from the original layout regardless of active-render changes below.
